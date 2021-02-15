@@ -1,0 +1,77 @@
+.toolbar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1rem 0;
+}
+select {
+  outline: none;
+  margin: 0 0.4rem;
+}
+.search {
+  width: 50%;
+}
+::placeholders {
+  color: #5a0574;
+  opacity: 0.8;
+}
+.searchBox {
+  width: 100%;
+  height: 2.6rem;
+  outline: none;
+  padding: 0 0.9rem;
+  border-radius: 1rem;
+  border-color: #a90dd8;
+  color: #5a0574;
+}
+.export-container {
+  display: flex;
+  align-items: center;
+}
+.export {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+.sortby {
+  position: relative;
+  cursor: pointer;
+}
+.sortby--opacity-asc:before {
+  opacity: 1 !important;
+}
+.sortby--opacity-desc:after {
+  opacity: 1 !important;
+}
+.sortby:before,
+.sortby:after {
+  content: '↑';
+  display: block;
+  height: 0;
+  width: 0;
+  right: 5px;
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+.sortby:before {
+  margin-top: -8px;
+  margin-right: 1.5rem;
+}
+.sortby:after {
+  margin-top: 8px;
+  transform: rotate(180deg);
+}
+.row {
+  align-items: center;
+}
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+}
+ul.pagination {
+  margin: 0;
+}
+.page-link:focus {
+  box-shadow: none;
+}
