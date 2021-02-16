@@ -1,15 +1,20 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import React, { Component } from 'react'
-import products from '../data/products'
-import CsvUtil from '../util/CsvUtil'
-import PaginationUtil from '../util/PaginationUtil'
-import SortingUtil from '../util/SortingUtil'
+import CsvUtil from './util/CsvUtil'
+import PaginationUtil from './util/PaginationUtil'
+import SortingUtil from './util/SortingUtil'
+import StringUtil from './util/StringUtil'
 import './Table.css'
 
 class Table extends Component {
   constructor(props) {
     super(props)
+    let products = []
+    if (props.products && Array.isArray(props.products)) {
+      products = props.products
+    }
     this.state = {
+      products: products,
       filteredProducts: products,
       searchedProducts: products,
       tableHeading: {
@@ -27,27 +32,31 @@ class Table extends Component {
     }
   }
   componentDidMount() {
-    const { searchedProducts, showNoOfRecords } = this.state
-    const tr = searchedProducts.length
-    const tp = Math.ceil(tr / showNoOfRecords)
-    PaginationUtil.doPagination(1, tp)
-    SortingUtil.sortAscending(searchedProducts, 'name')
-    SortingUtil.addAscendingIcon(document.getElementById('name'))
-    this.setState({
-      totalRecords: tr,
-      totalPages: tp,
-      start: 1,
-      end: showNoOfRecords > tr ? tr : showNoOfRecords,
-      filteredProducts: searchedProducts.slice(0, showNoOfRecords),
-    })
+    const { searchedProducts, showNoOfRecords, products } = this.state
+    if (products.length > 0) {
+      const tr = searchedProducts.length
+      const tp = Math.ceil(tr / showNoOfRecords)
+      SortingUtil.sortAscending(searchedProducts, 'name')
+      SortingUtil.addAscendingIcon(document.getElementById('name'))
+      this.setState({
+        totalRecords: tr,
+        totalPages: tp,
+        start: 1,
+        end: showNoOfRecords > tr ? tr : showNoOfRecords,
+        filteredProducts: searchedProducts.slice(0, showNoOfRecords),
+      })
+    }
   }
 
+  componentDidUpdate() {
+    const { page, totalPages } = this.state
+    PaginationUtil.doPagination(page, totalPages)
+  }
   handleShowNoOfRecords = (e) => {
     const { searchedProducts } = this.state
     const noOfRecords = parseInt(e.target.value)
     const tr = searchedProducts.length
     const tp = Math.ceil(tr / noOfRecords)
-    PaginationUtil.doPagination(1, tp)
     this.setState({
       showNoOfRecords: noOfRecords,
       page: 1,
@@ -59,8 +68,8 @@ class Table extends Component {
   }
 
   handleSearch = (e) => {
+    const { products } = this.state
     const { tableHeading, showNoOfRecords, page } = this.state
-    const searchText = e.target.value
     for (const [key, value] of Object.entries(tableHeading)) {
       if (value['asc']) {
         SortingUtil.sortAscending(products, key)
@@ -70,16 +79,18 @@ class Table extends Component {
         break
       }
     }
+    const searchText = e.target.value
     const sp = products.filter((obj) => Object.values(obj).some((val) => val.toString().includes(searchText)))
     const tr = sp.length
     const tp = Math.ceil(tr / showNoOfRecords)
-    const startIndex = (page - 1) * showNoOfRecords
+    const startIndex = 0
     let endIndex = page * showNoOfRecords
     endIndex = endIndex > tr ? tr : endIndex
-    PaginationUtil.doPagination(page, tp)
     this.setState({
       totalRecords: tr,
       totalPages: tp,
+      page: 1,
+      start: startIndex + 1,
       end: endIndex,
       searchedProducts: sp,
       filteredProducts: sp.slice(startIndex, endIndex),
@@ -154,7 +165,6 @@ class Table extends Component {
     } else {
       pageNo = parseInt(pageText)
     }
-    PaginationUtil.doPagination(pageNo, totalPages)
     const startIndex = (pageNo - 1) * showNoOfRecords
     let endIndex = pageNo * showNoOfRecords
     endIndex = endIndex > totalRecords ? totalRecords : endIndex
@@ -174,7 +184,7 @@ class Table extends Component {
   }
 
   render() {
-    const { totalPages, page, filteredProducts, start, end, totalRecords } = this.state
+    const { totalPages, page, filteredProducts, start, end, totalRecords, products } = this.state
     const liElements = []
     const maxDisplayPage = 8
     const additionNo = page - (Math.floor(maxDisplayPage / 2) + 1)
@@ -188,6 +198,7 @@ class Table extends Component {
       startsFrom = startsFrom + additionNo
       endTo = endTo + additionNo
     }
+    if (endTo == 0) endTo = 1
     for (let i = startsFrom; i <= endTo; i++) {
       liElements.push(
         <li className='page-item' key={i}>
@@ -225,18 +236,12 @@ class Table extends Component {
         <table className='table table-striped table-bordered'>
           <thead>
             <tr>
-              <th id='id' className='sortby' onClick={this.handleSorting}>
-                Id
-              </th>
-              <th id='name' className='sortby' onClick={this.handleSorting}>
-                Name
-              </th>
-              <th id='price' className='sortby' onClick={this.handleSorting}>
-                Price
-              </th>
-              <th id='quantity' className='sortby' onClick={this.handleSorting}>
-                Quantity
-              </th>
+              {products.length > 0 &&
+                Object.keys(products[0]).map((key, i) => (
+                  <th id={key} className='sortby' onClick={this.handleSorting} key={i}>
+                    {StringUtil.camelCaseToSentenceCase(key)}
+                  </th>
+                ))}
             </tr>
           </thead>
           <tbody>

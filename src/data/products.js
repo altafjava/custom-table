@@ -11,6 +11,7 @@ for (let i = 1; i <= 100; i++) {
 }
 // console.log(JSON.stringify(prods))
 // export default prods
+// export default []
 export default [
   { id: 1, name: 'clwrj', price: 3222, quantity: 10 },
   { id: 2, name: 'tosved', price: 5231, quantity: 4 },
