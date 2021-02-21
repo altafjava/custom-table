@@ -1,10 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import React, { Component } from 'react'
+import './Table.css'
 import CsvUtil from './util/CsvUtil'
 import PaginationUtil from './util/PaginationUtil'
 import SortingUtil from './util/SortingUtil'
 import StringUtil from './util/StringUtil'
-import './Table.css'
 
 class Table extends Component {
   constructor(props) {
@@ -13,16 +13,21 @@ class Table extends Component {
     if (props.products && Array.isArray(props.products)) {
       products = props.products
     }
+    let tableHeading = {}
+    const defaultSort = this.props.defaultSort
+    if (defaultSort && defaultSort in products[0]) {
+      tableHeading = {
+        [defaultSort]: {
+          asc: true,
+          desc: false,
+        },
+      }
+    }
     this.state = {
       products: products,
       filteredProducts: products,
       searchedProducts: products,
-      tableHeading: {
-        name: {
-          asc: true,
-          desc: false,
-        },
-      },
+      tableHeading: tableHeading,
       page: 1,
       start: 0,
       end: 0,
@@ -36,8 +41,11 @@ class Table extends Component {
     if (products.length > 0) {
       const tr = searchedProducts.length
       const tp = Math.ceil(tr / showNoOfRecords)
-      SortingUtil.sortAscending(searchedProducts, 'name')
-      SortingUtil.addAscendingIcon(document.getElementById('name'))
+      const defaultSort = this.props.defaultSort
+      if (defaultSort && defaultSort in searchedProducts[0]) {
+        SortingUtil.sortAscending(searchedProducts, defaultSort)
+        SortingUtil.addAscendingIcon(document.getElementById(defaultSort))
+      }
       this.setState({
         totalRecords: tr,
         totalPages: tp,
@@ -79,8 +87,16 @@ class Table extends Component {
         break
       }
     }
-    const searchText = e.target.value
-    const sp = products.filter((obj) => Object.values(obj).some((val) => val.toString().includes(searchText)))
+    // const searchText = e.target.value
+    // const sp = products.filter((obj) => Object.values(obj).some((val) => val.toString().includes(searchText)))
+    const searchText = e.target.value.toLowerCase()
+    const sp = products.filter((obj) => {
+      return Object.values(obj).some((val) => {
+        val = val.toString().toLowerCase()
+        return val.includes(searchText)
+      })
+    })
+
     const tr = sp.length
     const tp = Math.ceil(tr / showNoOfRecords)
     const startIndex = 0
@@ -107,7 +123,8 @@ class Table extends Component {
   handleSorting = (e) => {
     const { tableHeading, searchedProducts, start, end } = this.state
     const targetTh = e.target
-    const thName = targetTh.innerText.toLowerCase()
+    let thName = targetTh.innerText.toLowerCase()
+    thName = StringUtil.camelize(thName)
     const tableHeadingKeys = Object.keys(tableHeading)
     const oldTableHeading = {}
     if (tableHeadingKeys.length > 0) {
@@ -248,10 +265,9 @@ class Table extends Component {
             {filteredProducts.map((product, i) => {
               return (
                 <tr key={i}>
-                  <td>{product.id}</td>
-                  <td>{product.name}</td>
-                  <td>{product.price}</td>
-                  <td>{product.quantity}</td>
+                  {Object.keys(product).map((key, i) => (
+                    <td key={i}>{product[key]}</td>
+                  ))}
                 </tr>
               )
             })}
